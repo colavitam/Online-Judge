@@ -7,21 +7,19 @@ import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Michael
- */
-public class Rename {
+public class USACOImporter {
     public static void main(String[] args) throws Throwable {
-        URL problemPage=new URL("http://usaco.org/index.php?page=open13problems");
+        //Stuff to enter for the importer to work
+        String URLofProblemPage="http://usaco.org/index.php?page=open13problems";
         String prefix="USACO.US Open 2013.";
         String rootDir="C:\\Judge\\Testing Data\\";
-        int[] probLayout={3,3,4};
+        int goldProblems = 3;
+        int silverProblems = 3;
+        int bronzeProblems = 4;
+        
+        //Functional code
+        URL problemPage=new URL(URLofProblemPage);
+        int[] probLayout={goldProblems,silverProblems,bronzeProblems};
         String st=readAll(problemPage);
         st=st.substring(st.indexOf("<div class=\"panel\">"));
         String[] divs=new String[]{"G","S","B"};
