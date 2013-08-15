@@ -9,23 +9,23 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * To change this template, choose Tools | Templates and open the template in
+ * the editor.
  */
-
 /**
  *
  * @author Michael
  */
-public class JudgeMain extends javax.swing.JApplet implements Codes{
+public class JudgeMain extends javax.swing.JApplet implements Codes {
+
     final static int MAX_LENGTH = 1000000;
     final static String SERVERIPADDR = "127.0.0.1";
-    String[][] acceptableFileExtensions = new String[][] {{"java","txt"},{"py","txt"},{"cpp","c","txt"}};
+    String[][] acceptableFileExtensions = new String[][]{{"java", "txt"}, {"py", "txt"}, {"cpp", "c", "txt"}};
     String[] origins;
     String[][] contests;
     String[][][] problems;
     JButton[] tests;
-    
+
     @Override
     public void init() {
         try {
@@ -55,8 +55,8 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
             ex.printStackTrace();
         }
         //Create test result button index
-        tests=new JButton[]{jButton1,jButton2,jButton3,jButton4,jButton5,jButton6,jButton7,jButton8,jButton9,jButton10,jButton11,jButton12,jButton13,jButton14,jButton15,jButton16};
-        for(int i=0;i<16;i++) { //Set to default state
+        tests = new JButton[]{jButton1, jButton2, jButton3, jButton4, jButton5, jButton6, jButton7, jButton8, jButton9, jButton10, jButton11, jButton12, jButton13, jButton14, jButton15, jButton16};
+        for (int i = 0; i < 16; i++) { //Set to default state
             tests[i].setBackground(Color.GRAY);
             tests[i].setText("-");
         }
@@ -66,98 +66,102 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
     private void loadProblems() { //Programming death penalty here
         try {
             //Read in problem database
-            URL source=new URL("http://wacode.github.io/judge/problemdb.txt");
-            InputStream read=source.openStream();
-            ByteArrayOutputStream baos=new ByteArrayOutputStream();
-            byte[] buffer=new byte[4096];
+            URL source = new URL("http://wacode.github.io/judge/problemdb.txt");
+            InputStream read = source.openStream();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
             int len;
-            while((len = read.read(buffer)) != -1) {
-                baos.write(buffer,0,len);
+            while ((len = read.read(buffer)) != -1) {
+                baos.write(buffer, 0, len);
             }
-            String problemsList=baos.toString();
-            String[] lines=problemsList.split("\n");
+            String problemsList = baos.toString();
+            String[] lines = problemsList.split("\n");
             //Count number of origins
-            int originCount=0;
-            for(String line:lines) {
-                if(!line.startsWith("-"))
+            int originCount = 0;
+            for (String line : lines) {
+                if (!line.startsWith("-")) {
                     originCount++;
+                }
             }
-            origins=new String[originCount];
+            origins = new String[originCount];
             //Read in origins
-            int on=0;
-            for(String line:lines) {
-                if(!line.startsWith("-"))
-                    origins[on++]=line;
+            int on = 0;
+            for (String line : lines) {
+                if (!line.startsWith("-")) {
+                    origins[on++] = line;
+                }
             }
-            contests=new String[originCount][];
+            contests = new String[originCount][];
             //Count number of contests each
-            int lineon=1;
-            for(int origin=0;origin<originCount;origin++) {
-                int contestCount=0;
-                while(lineon<lines.length && lines[lineon].startsWith("-")) {
-                    if(!lines[lineon].startsWith("--"))
+            int lineon = 1;
+            for (int origin = 0; origin < originCount; origin++) {
+                int contestCount = 0;
+                while (lineon < lines.length && lines[lineon].startsWith("-")) {
+                    if (!lines[lineon].startsWith("--")) {
                         contestCount++;
+                    }
                     lineon++;
                 }
                 lineon++;
-                contests[origin]=new String[contestCount];
+                contests[origin] = new String[contestCount];
             }
             //Read in contests
-            lineon=1;
-            for(int origin=0;origin<originCount;origin++) {
-                int contestOn=0;
-                while(lineon<lines.length && lines[lineon].startsWith("-")) {
-                    if(!lines[lineon].startsWith("--"))
-                        contests[origin][contestOn++]=lines[lineon].substring(1);
+            lineon = 1;
+            for (int origin = 0; origin < originCount; origin++) {
+                int contestOn = 0;
+                while (lineon < lines.length && lines[lineon].startsWith("-")) {
+                    if (!lines[lineon].startsWith("--")) {
+                        contests[origin][contestOn++] = lines[lineon].substring(1);
+                    }
                     lineon++;
                 }
                 lineon++;
             }
-            problems=new String[originCount][][];
-            for(int i=0;i<originCount;i++) {
-                problems[i]=new String[contests[i].length][];
+            problems = new String[originCount][][];
+            for (int i = 0; i < originCount; i++) {
+                problems[i] = new String[contests[i].length][];
             }
             //Count number of problems each
-            lineon=2;
-            for(int origin=0;origin<originCount;origin++) {
-                for(int contest=0;contest<contests[origin].length;contest++) {
+            lineon = 2;
+            for (int origin = 0; origin < originCount; origin++) {
+                for (int contest = 0; contest < contests[origin].length; contest++) {
                     int problemsCount = 0;
-                    while(lineon<lines.length && lines[lineon].startsWith("--")) {
+                    while (lineon < lines.length && lines[lineon].startsWith("--")) {
                         problemsCount++;
                         lineon++;
                     }
-                    if(lineon<lines.length && lines[lineon].startsWith("-"))
+                    if (lineon < lines.length && lines[lineon].startsWith("-")) {
                         lineon++;
-                    else
-                        lineon+=2;
-                    problems[origin][contest]=new String[problemsCount];
+                    } else {
+                        lineon += 2;
+                    }
+                    problems[origin][contest] = new String[problemsCount];
                 }
             }
             //Read in problems
-            lineon=2;
-            for(int origin=0;origin<originCount;origin++) {
-                for(int contest=0;contest<contests[origin].length;contest++) {
+            lineon = 2;
+            for (int origin = 0; origin < originCount; origin++) {
+                for (int contest = 0; contest < contests[origin].length; contest++) {
                     int problemOn = 0;
-                    while(lineon<lines.length && lines[lineon].startsWith("--")) {
-                        problems[origin][contest][problemOn++]=lines[lineon++].substring(2);
+                    while (lineon < lines.length && lines[lineon].startsWith("--")) {
+                        problems[origin][contest][problemOn++] = lines[lineon++].substring(2);
                     }
-                    if(lineon<lines.length && lines[lineon].startsWith("-"))
+                    if (lineon < lines.length && lines[lineon].startsWith("-")) {
                         lineon++;
-                    else
-                        lineon+=2;
+                    } else {
+                        lineon += 2;
+                    }
                 }
             }
             //Apply defaults
             originSelect.setModel(new DefaultComboBoxModel(origins));
             contestSelect.setModel(new DefaultComboBoxModel(contests[0]));
             problemSelect.setModel(new DefaultComboBoxModel(problems[0][0]));
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showConfirmDialog(null, "The problem list could not be retrieved.","Error",-1);
+            JOptionPane.showConfirmDialog(null, "The problem list could not be retrieved.", "Error", -1);
         }
     }
-    
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -399,33 +403,34 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
     private void clearConsole() {
         outputArea.setText("");
     }
-    
+
     private void println(String st) {
-        outputArea.setText(outputArea.getText()+st+"\n");
+        outputArea.setText(outputArea.getText() + st + "\n");
     }
-    
+
     private void print(String st) {
-        outputArea.setText(outputArea.getText()+st);
+        outputArea.setText(outputArea.getText() + st);
     }
-    
+
     private void abortSubmission() {
         println("Submission aborted.");
     }
-    
+
     private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
         //Open a dialog to choose a file
-        JFileChooser jfc=new JFileChooser();
-        int result=jfc.showOpenDialog(null);
-        if(result!=JFileChooser.APPROVE_OPTION) {
+        JFileChooser jfc = new JFileChooser();
+        int result = jfc.showOpenDialog(null);
+        if (result != JFileChooser.APPROVE_OPTION) {
             abortSubmission();
             return;
         }
-        File selected=jfc.getSelectedFile();
+        File selected = jfc.getSelectedFile();
         fileName.setText(selected.getPath());
     }//GEN-LAST:event_browseButtonActionPerformed
 
     private void submitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitButtonActionPerformed
-        Thread t=new Thread(new Runnable() {
+        Thread t = new Thread(new Runnable() {
+
             public void run() {
                 submitButton.setEnabled(false);
                 submit();
@@ -448,7 +453,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
 
     private void submit() {
         //Reset test buttons
-        for(int i=0;i<16;i++) {
+        for (int i = 0; i < 16; i++) {
             tests[i].setBackground(Color.GRAY);
             tests[i].setText("-");
         }
@@ -456,69 +461,68 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
         outputArea.setBackground(Color.WHITE);
         clearConsole();
         //Check that file exists
-        File selected=new File(fileName.getText());
-        if(!selected.exists()) {
+        File selected = new File(fileName.getText());
+        if (!selected.exists()) {
             println("Chosen file is nonexistent.");
             abortSubmission();
             return;
         }
         //File length check
-        if(selected.length()>MAX_LENGTH) { //File too long
-            println("Fail: File size exceeds "+MAX_LENGTH+" bytes.");
+        if (selected.length() > MAX_LENGTH) { //File too long
+            println("Fail: File size exceeds " + MAX_LENGTH + " bytes.");
             abortSubmission();
             return;
         }
         //Type check
-        int language=languageSelect.getSelectedIndex();
-        String selFileName=selected.getPath();
-        String[] divide=selFileName.split("\\.");
-        if(divide.length==1) {
+        int language = languageSelect.getSelectedIndex();
+        String selFileName = selected.getPath();
+        String[] divide = selFileName.split("\\.");
+        if (divide.length == 1) {
             println("Fail: File has no extension.");
             abortSubmission();
             return;
         }
-        String extension=divide[divide.length-1];
+        String extension = divide[divide.length - 1];
         boolean matchFound = false;
         //Search acceptable file extensions for match
-        for(int i=0;i<acceptableFileExtensions[language].length;i++) {
-            if(extension.toLowerCase().contentEquals(acceptableFileExtensions[language][i].toLowerCase())) { //Match found
+        for (int i = 0; i < acceptableFileExtensions[language].length; i++) {
+            if (extension.toLowerCase().contentEquals(acceptableFileExtensions[language][i].toLowerCase())) { //Match found
                 matchFound = true;
                 break;
             }
         }
-        if(!matchFound) { //Invalid extension
-            println("Fail: Extension \""+extension+"\" is invalid for language \""+languageSelect.getSelectedItem()+"\".");
+        if (!matchFound) { //Invalid extension
+            println("Fail: Extension \"" + extension + "\" is invalid for language \"" + languageSelect.getSelectedItem() + "\".");
             abortSubmission();
             return;
         }
-        InputStream is=null;
-        OutputStream os=null;
+        InputStream is = null;
+        OutputStream os = null;
         try {
             //Read file to socket
-            FileInputStream fis=new FileInputStream(selected);
-            Socket socket=new Socket(SERVERIPADDR,13786);
-            for(int i=0;i<10;i++) {
+            FileInputStream fis = new FileInputStream(selected);
+            Socket socket = new Socket(SERVERIPADDR, 13786);
+            for (int i = 0; i < 10; i++) {
                 try {
-                    os=socket.getOutputStream();
-                }
-                catch(Exception e) {
+                    os = socket.getOutputStream();
+                } catch (Exception e) {
                     continue;
                 }
                 break;
             }
-            if(os==null) {
+            if (os == null) {
                 abortSubmission();
                 return;
             }
             //Connection has been established
             println("Connection established.");
             //Send info header
-            String header=selected.getName()+"===SPLIT HEADER==="+originSelect.getSelectedItem()+"===SPLIT HEADER==="+contestSelect.getSelectedItem()+"===SPLIT HEADER==="+problemSelect.getSelectedItem()+"===SPLIT HEADER==="+languageSelect.getSelectedItem()+"===END HEADER===\n";
+            String header = selected.getName() + "===SPLIT HEADER===" + originSelect.getSelectedItem() + "===SPLIT HEADER===" + contestSelect.getSelectedItem() + "===SPLIT HEADER===" + problemSelect.getSelectedItem() + "===SPLIT HEADER===" + languageSelect.getSelectedItem() + "===END HEADER===\n";
             os.write(header.getBytes());
             //Send file
             int len;
             byte[] buffer = new byte[4096];
-            while((len=fis.read(buffer))!=-1) {
+            while ((len = fis.read(buffer)) != -1) {
                 os.write(buffer, 0, len);
             }
             //File submission completed
@@ -526,14 +530,15 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
             socket.shutdownOutput();
             println("File sent! Awaiting results.");
             //Listen for results
-            is=socket.getInputStream();
-            int testOn=0;
+            is = socket.getInputStream();
+            int testOn = 0;
             out:
-            while(true) {
-                int read=is.read();
-                if(read==-1)
+            while (true) {
+                int read = is.read();
+                if (read == -1) {
                     break;
-                switch(read) {
+                }
+                switch (read) {
                     case JUDGING_INIT:
                         println("Judging initiated");
                         break;
@@ -548,24 +553,24 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
                         tests[testOn].setText("OK");
                         //tests[testOn].setEnabled(false);
                         tests[testOn++].setBackground(Color.GREEN);
-                        println("Test "+(testOn)+" passed!");
+                        println("Test " + (testOn) + " passed!");
                         break;
                     case TEST_FAIL_TIMEOUT:
                         tests[testOn].setVisible(true);
                         tests[testOn].setText("T");
                         //tests[testOn].setEnabled(false);
                         tests[testOn++].setBackground(Color.RED);
-                        println("Test "+(testOn)+" failed: Timeout!");
+                        println("Test " + (testOn) + " failed: Timeout!");
                         break;
                     case TEST_FAIL_WRONG:
                         tests[testOn].setVisible(true);
                         tests[testOn].setText("X");
                         //tests[testOn].setEnabled(false);
                         tests[testOn++].setBackground(Color.RED);
-                        println("Test "+(testOn)+" failed: Incorrect!");
+                        println("Test " + (testOn) + " failed: Incorrect!");
                         break;
                     case INVALID_PROBLEM:
-                        System.out.println("Faulty problem: "+contestSelect.getSelectedItem()+": "+problemSelect.getSelectedItem());
+                        System.out.println("Faulty problem: " + contestSelect.getSelectedItem() + ": " + problemSelect.getSelectedItem());
                         println("Invalid problem selected.");
                         break;
                     case JUDGING_ERROR:
@@ -585,20 +590,16 @@ public class JudgeMain extends javax.swing.JApplet implements Codes{
                         break out;
                 }
             }
-        }
-        catch(Exception e) {
-            println("An IOException occurred while submitting: "+e.getMessage()+".");
+        } catch (Exception e) {
+            println("An IOException occurred while submitting: " + e.getMessage() + ".");
             e.printStackTrace();
             abortSubmission();
             return;
-        }
-        finally {
+        } finally {
             try {
                 os.close();
                 is.close();
-            }
-            catch(Exception e) {
-                
+            } catch (Exception e) {
             }
         }
     }
