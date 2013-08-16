@@ -220,14 +220,11 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
             }
         });
 
-        contestSelect.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "November 2012" }));
         contestSelect.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 contestSelectItemStateChanged(evt);
             }
         });
-
-        problemSelect.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "G1 - Balanced Cow Breeds" }));
 
         outputArea.setColumns(20);
         outputArea.setEditable(false);
