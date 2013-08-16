@@ -8,14 +8,6 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-/*
- * To change this template, choose Tools | Templates and open the template in
- * the editor.
- */
-/**
- *
- * @author Michael
- */
 public class JudgeMain extends javax.swing.JApplet implements Codes {
 
     final static int MAX_LENGTH = 1000000;
@@ -591,7 +583,6 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
             println("An IOException occurred while submitting: " + e.getMessage() + ".");
             e.printStackTrace();
             abortSubmission();
-            return;
         } finally {
             try {
                 os.close();
