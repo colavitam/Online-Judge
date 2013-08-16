@@ -1,0 +1,12 @@
+online-judge-server/dist/
+online-judge-client/dist/
+online-judge-server/build/built-jar.properties
+online-judge-server/build/classes/judge/server/JudgeServer.class
+online-judge-server/build/classes/judge/server/USACOImporter.class
+online-judge-client/build/
+online-judge-client/nbproject/private/config.properties
+online-judge-client/nbproject/private/private.properties
+online-judge-client/nbproject/private/private.xml
+online-judge-server/nbproject/private/config.properties
+online-judge-server/nbproject/private/private.properties
+online-judge-server/build/

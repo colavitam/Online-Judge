@@ -1,3 +1,4 @@
+package judge.client;
 
 import java.awt.Color;
 import java.io.*;
@@ -11,7 +12,6 @@ import javax.swing.JOptionPane;
 public class JudgeMain extends javax.swing.JApplet implements Codes {
 
     final static int MAX_LENGTH = 1000000;
-    final static String SERVERIPADDR = "127.0.0.1";
     String[][] acceptableFileExtensions = new String[][]{{"java", "txt"}, {"py", "txt"}, {"cpp", "c", "txt"}};
     String[] origins;
     String[][] contests;
@@ -551,7 +551,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
                         break;
                     case TEST_FAIL_WRONG:
                         tests[testOn].setVisible(true);
-                        tests[testOn].setText("X");
+                        tests[testOn].setText("X ");
                         //tests[testOn].setEnabled(false);
                         tests[testOn++].setBackground(Color.RED);
                         println("Test " + (testOn) + " failed: Incorrect!");

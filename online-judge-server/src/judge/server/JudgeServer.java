@@ -1,18 +1,30 @@
+package judge.server;
+
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Calendar;
+import judge.client.Codes;
 
 public class JudgeServer implements Codes {
 
-    final static String testDirectory = "C:\\Judge\\";
-    final static String javaCompile = "\"C:\\Program Files (x86)\\Java\\jdk1.7.0_02\\bin\\javac\"";
-    final static String javaExec = "\"C:\\Program Files (x86)\\Java\\jdk1.7.0_02\\bin\\java\"";
+    static String testDirectory = "C:\\Judge\\";
+    static String javaCompile = "\"C:\\Program Files (x86)\\Java\\jdk1.7.0_02\\bin\\javac\"";
+    static String javaExec = "\"C:\\Program Files (x86)\\Java\\jdk1.7.0_02\\bin\\java\"";
+
     final static long USACO_TIME_LIMIT = 2000;
     final static long OTHER_TIME_LIMIT = 30000;
 
     public static void main(String[] args) {
+        if(args.length == 3) {
+            testDirectory=args[0];
+            javaCompile=args[1];
+            javaExec=args[2];
+        }
+        else if(args.length == 0) {
+            System.out.println("For custom parameters, specifiy testDirectory, javacPath, and javaPath in order.");
+        }
         while (true) { //Ultimate failsafe
             InputStream read = null;
             OutputStream sendInfo = null;
@@ -123,7 +135,7 @@ public class JudgeServer implements Codes {
                                 System.out.print(i + " ");
                             } else { //Test failed
                                 sendInfo.write(TEST_FAIL_WRONG);
-                                System.out.print("X ");
+                                System.out.print("X");
                                 success = false;
                                 break;
                             }
