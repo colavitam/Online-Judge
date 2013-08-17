@@ -9,9 +9,9 @@ import judge.client.Codes;
 
 public class JudgeServer implements Codes {
 
-    static String testDirectory = "C:\\Judge\\";
-    static String javaCompile = "\"C:\\Program Files (x86)\\Java\\jdk1.7.0_02\\bin\\javac\"";
-    static String javaExec = "\"C:\\Program Files (x86)\\Java\\jdk1.7.0_02\\bin\\java\"";
+    static String testDirectory = "C:/Judge/";
+    static String javaCompile = "\"C:/Program Files (x86)/Java/jdk1.7.0_02/bin/javac\"";
+    static String javaExec = "\"C:/Program Files (x86)/Java/jdk1.7.0_02/bin/java\"";
 
     final static long USACO_TIME_LIMIT = 2000;
     final static long OTHER_TIME_LIMIT = 30000;
@@ -41,7 +41,7 @@ public class JudgeServer implements Codes {
                 System.out.print("Now judging... ");
 
                 //Create a testing directory
-                dirName = testDirectory + System.nanoTime() + "\\";
+                dirName = testDirectory + System.nanoTime() + "/";
                 File newDir = new File(dirName);
                 newDir.mkdir();
 
@@ -195,7 +195,7 @@ public class JudgeServer implements Codes {
 
     public static int testCount(String[] headers) throws IOException {
         for (int i = 0; i < Integer.MAX_VALUE; i++) { //Count number of files of form #.in
-            File databank = new File(testDirectory + "Testing Data\\" + headers[1] + "." + headers[2] + "." + headers[3] + "\\" + (i + 1) + ".in");
+            File databank = new File(testDirectory + "Testing Data/" + headers[1] + "." + headers[2] + "." + headers[3] + "/" + (i + 1) + ".in");
             if (!databank.exists()) {
                 return i;
             }
@@ -204,12 +204,12 @@ public class JudgeServer implements Codes {
     }
 
     public static String getInput(String[] headers, int testNumber) throws IOException {
-        File databank = new File(testDirectory + "Testing Data\\" + headers[1] + "." + headers[2] + "." + headers[3] + "\\" + testNumber + ".in"); //Reads input for test case
+        File databank = new File(testDirectory + "Testing Data/" + headers[1] + "." + headers[2] + "." + headers[3] + "/" + testNumber + ".in"); //Reads input for test case
         return readAll(databank);
     }
 
     public static String getUSACOName(String[] headers) throws IOException {
-        File databank = new File(testDirectory + "Testing Data\\" + headers[1] + "." + headers[2] + "." + headers[3] + "\\name.txt"); //Retrieves a USACO in/out name
+        File databank = new File(testDirectory + "Testing Data/" + headers[1] + "." + headers[2] + "." + headers[3] + "/name.txt"); //Retrieves a USACO in/out name
         return readAll(databank);
     }
 
@@ -255,7 +255,7 @@ public class JudgeServer implements Codes {
 
     public static String expectedResult(String[] headers, String dirName, int testNumber) throws IOException {
         //Load the correct result for a test
-        File databank = new File(testDirectory + "Testing Data\\" + headers[1] + "." + headers[2] + "." + headers[3] + "\\" + testNumber + ".out");
+        File databank = new File(testDirectory + "Testing Data/" + headers[1] + "." + headers[2] + "." + headers[3] + "/" + testNumber + ".out");
         return readAll(databank);
     }
 

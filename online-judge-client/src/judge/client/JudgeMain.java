@@ -523,7 +523,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
             while (true) {
                 int read = is.read();
                 if (read == -1) {
-                    break;
+                    throw new IOException("Stream terminated unexpectedly");
                 }
                 switch (read) {
                     case JUDGING_INIT:
