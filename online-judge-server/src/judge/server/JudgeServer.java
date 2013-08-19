@@ -1,10 +1,11 @@
 package judge.server;
 
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import judge.client.Codes;
 
 public class JudgeServer implements Codes {
@@ -12,169 +13,31 @@ public class JudgeServer implements Codes {
     static String testDirectory = "C:/Judge/";
     static String javaCompile = "\"C:/Program Files (x86)/Java/jdk1.7.0_02/bin/javac\"";
     static String javaExec = "\"C:/Program Files (x86)/Java/jdk1.7.0_02/bin/java\"";
-
     final static long USACO_TIME_LIMIT = 2000;
     final static long OTHER_TIME_LIMIT = 30000;
 
     public static void main(String[] args) {
-        if(args.length == 3) {
-            testDirectory=args[0];
-            javaCompile=args[1];
-            javaExec=args[2];
-        }
-        else if(args.length == 0) {
+        if (args.length == 3) {
+            testDirectory = args[0];
+            javaCompile = args[1];
+            javaExec = args[2];
+        } else if (args.length == 0) {
             System.out.println("For custom parameters, specifiy testDirectory, javacPath, and javaPath in order.");
         }
+        ServerSocket servSocket;
+        try {
+            servSocket = new ServerSocket(13786);
+        } catch (Exception e) {
+            System.out.println("Failed to setup ServerSocket.");
+            e.printStackTrace();
+            return;
+        }
         while (true) { //Ultimate failsafe
-            InputStream read = null;
-            OutputStream sendInfo = null;
-            String dirName = null;
-            Socket socket = null;
-            ServerSocket servSocket = null;
             try {
                 //Prepare to receive data:
-                servSocket = new ServerSocket(13786);
-                System.out.print("Awaiting connection... ");
-                socket = servSocket.accept();
-
-                //Connection to client established
-                System.out.print("Now judging... ");
-
-                //Create a testing directory
-                dirName = testDirectory + System.nanoTime() + "/";
-                File newDir = new File(dirName);
-                newDir.mkdir();
-
-                //Receive the file
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                read = socket.getInputStream();
-                int len;
-                byte[] buffer = new byte[4096];
-                while ((len = read.read(buffer)) != -1) {
-                    baos.write(buffer, 0, len);
-                }
-
-                //Finished receiving data
-                socket.shutdownInput();
-
-                //Split apart header
-                String fileContents = baos.toString();
-                String[] sects = fileContents.split("===END HEADER===");
-                String header = sects[0];
-                String[] headerVals = header.split("===SPLIT HEADER===");
-                String name = headerVals[0];
-
-                //Write file to testing directory
-                FileOutputStream fos = new FileOutputStream(dirName + name);
-                fos.write(fileContents.substring(fileContents.indexOf("===END HEADER===") + 16).getBytes());
-                fos.close();
-
-                //Prepare to send data
-                sendInfo = socket.getOutputStream();
-                sendInfo.write(JUDGING_INIT);
-
-                //Compile received program
-                String language = headerVals[4];
-                switch (language) {
-                    case "Java": //Received java program
-                        //Compile program
-                        ProcessBuilder builder = new ProcessBuilder(new String[]{javaCompile, dirName + name});
-                        Process comp = builder.start();
-                        int compileResult = comp.waitFor();
-                        if (compileResult != 0) { //Compile failed
-                            sendInfo.write(COMPILE_FAIL);
-                            sendInfo.write(JUDGING_ABORT);
-                            System.out.println("Compile fail.");
-                            break;
-                        }
-                        sendInfo.write(COMPILE_PASS); //Compile succeeded
-                        boolean success = true;
-                        int tests = testCount(headerVals); //Check how many tests need to be run
-                        if (tests == 0) { //Record of problem was not found
-                            sendInfo.write(INVALID_PROBLEM);
-                            sendInfo.write(JUDGING_ABORT);
-                            System.out.println("Invalid problem.");
-                            break;
-                        }
-
-                        //Run each test case
-                        outerLoop:
-                        for (int i = 1; i <= tests; i++) {
-                            //Move test files into place
-                            prepare(headerVals, dirName, i);
-                            //Execute program
-                            builder = new ProcessBuilder(new String[]{javaExec, name.split("\\.")[0]});
-                            new File(dirName + "input.in").createNewFile();
-                            new File(dirName + "output.out").createNewFile();
-                            builder.redirectInput(new File(dirName + "input.in")); //Redirect standard input to test case input
-                            builder.redirectOutput(new File(dirName + "output.out")); //Redirect standard output to test case output
-                            builder.directory(new File(dirName)); //Execute from testing directory
-                            Process run = builder.start();
-                            //Monitor time limit
-                            long startTime = Calendar.getInstance().getTimeInMillis();
-                            while (true) {
-                                try {
-                                    run.exitValue(); //Throws if not completed
-                                } catch (Exception e) {
-                                    long timeDif = Calendar.getInstance().getTimeInMillis() - startTime;
-                                    if (!timeOkay(headerVals, timeDif)) { //Time limit exceeded
-                                        sendInfo.write(TEST_FAIL_TIMEOUT);
-                                        success = false;
-                                        run.destroy();
-                                        System.out.println("T.");
-                                        break outerLoop;
-                                    }
-                                    continue;
-                                }
-                                break;
-                            }
-                            //Program completed
-                            boolean correct = checkResult(headerVals, dirName, i); //Check test case
-                            if (correct) { //Test passed
-                                sendInfo.write(TEST_PASS);
-                                System.out.print(i + " ");
-                            } else { //Test failed
-                                sendInfo.write(TEST_FAIL_WRONG);
-                                System.out.print("X");
-                                success = false;
-                                break;
-                            }
-                        }
-                        if (success) { //All tests passed
-                            sendInfo.write(TESTS_GOOD);
-                            System.out.println("... Pass.");
-                        } else { //Test failed
-                            sendInfo.write(TESTS_BAD);
-                            System.out.println("... Fail.");
-                        }
-                        break;
-                    case "Python": //Todo: python
-                        break;
-                    case "C++": //Todo: C++
-                        break;
-                }
+                Socket newSock = servSocket.accept();
+                new Thread(new SocketTester(newSock)).start();
             } catch (Exception e) {
-                try { //Attempt to send failure notification
-                    sendInfo.write(JUDGING_ERROR);
-                    sendInfo.write(JUDGING_ABORT);
-                } catch (Exception ex) {
-                }
-                e.printStackTrace();
-            } finally { //Close streams
-                try {
-                    socket.close();
-                    servSocket.close();
-                    read.close();
-                    sendInfo.close();
-                    //Delete testing directory
-                    File dir = new File(dirName);
-                    for (File subfile : dir.listFiles()) {
-                        subfile.delete();
-                    }
-                    dir.delete();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         }
     }
@@ -285,6 +148,156 @@ public class JudgeServer implements Codes {
                     return true;
                 }
                 return false;
+        }
+    }
+
+    static class SocketTester implements Runnable {
+
+        Socket socket;
+
+        public SocketTester(Socket socket) {
+            this.socket = socket;
+        }
+
+        public void run() {
+            InputStream read = null;
+            OutputStream sendInfo = null;
+            String dirName = null;
+            FileOutputStream fos = null;
+            try {
+                //Connection to client established
+                SimpleDateFormat sdf=new SimpleDateFormat("'on' MM/dd/yyyy 'at' hh:mm:ss a");
+                System.out.println("Problem received " + sdf.format(new Date()) +".");
+
+                //Create a testing directory
+                dirName = testDirectory + System.nanoTime() + "/";
+                File newDir = new File(dirName);
+                newDir.mkdir();
+
+                //Receive the file
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                read = socket.getInputStream();
+                int len;
+                byte[] buffer = new byte[4096];
+                while ((len = read.read(buffer)) != -1) {
+                    baos.write(buffer, 0, len);
+                }
+
+                //Finished receiving data
+                socket.shutdownInput();
+
+                //Split apart header
+                String fileContents = baos.toString();
+                String[] sects = fileContents.split("===END HEADER===");
+                String header = sects[0];
+                String[] headerVals = header.split("===SPLIT HEADER===");
+                String name = headerVals[0];
+
+                //Write file to testing directory
+                fos = new FileOutputStream(dirName + name);
+                fos.write(fileContents.substring(fileContents.indexOf("===END HEADER===") + 16).getBytes());
+                fos.close();
+
+                //Prepare to send data
+                sendInfo = socket.getOutputStream();
+                sendInfo.write(JUDGING_INIT);
+
+                //Compile received program
+                String language = headerVals[4];
+                switch (language) {
+                    case "Java": //Received java program
+                        //Compile program
+                        ProcessBuilder builder = new ProcessBuilder(new String[]{javaCompile, dirName + name});
+                        Process comp = builder.start();
+                        int compileResult = comp.waitFor();
+                        if (compileResult != 0) { //Compile failed
+                            sendInfo.write(COMPILE_FAIL);
+                            sendInfo.write(JUDGING_ABORT);
+                            break;
+                        }
+                        sendInfo.write(COMPILE_PASS); //Compile succeeded
+                        boolean success = true;
+                        int tests = testCount(headerVals); //Check how many tests need to be run
+                        if (tests == 0) { //Record of problem was not found
+                            sendInfo.write(INVALID_PROBLEM);
+                            sendInfo.write(JUDGING_ABORT);
+                            break;
+                        }
+
+                        //Run each test case
+                        outerLoop:
+                        for (int i = 1; i <= tests; i++) {
+                            //Move test files into place
+                            prepare(headerVals, dirName, i);
+                            //Execute program
+                            builder = new ProcessBuilder(new String[]{javaExec, name.split("\\.")[0]});
+                            new File(dirName + "input.in").createNewFile();
+                            new File(dirName + "output.out").createNewFile();
+                            builder.redirectInput(new File(dirName + "input.in")); //Redirect standard input to test case input
+                            builder.redirectOutput(new File(dirName + "output.out")); //Redirect standard output to test case output
+                            builder.directory(new File(dirName)); //Execute from testing directory
+                            Process run = builder.start();
+                            //Monitor time limit
+                            long startTime = Calendar.getInstance().getTimeInMillis();
+                            while (true) {
+                                try {
+                                    run.exitValue(); //Throws if not completed
+                                } catch (Exception e) {
+                                    long timeDif = Calendar.getInstance().getTimeInMillis() - startTime;
+                                    if (!timeOkay(headerVals, timeDif)) { //Time limit exceeded
+                                        sendInfo.write(TEST_FAIL_TIMEOUT);
+                                        success = false;
+                                        run.destroy();
+                                        break outerLoop;
+                                    }
+                                    continue;
+                                }
+                                break;
+                            }
+                            //Program completed
+                            boolean correct = checkResult(headerVals, dirName, i); //Check test case
+                            if (correct) { //Test passed
+                                sendInfo.write(TEST_PASS);
+                            } else { //Test failed
+                                sendInfo.write(TEST_FAIL_WRONG);
+                                success = false;
+                                break;
+                            }
+                        }
+                        if (success) { //All tests passed
+                            sendInfo.write(TESTS_GOOD);
+                        } else { //Test failed
+                            sendInfo.write(TESTS_BAD);
+                        }
+                        break;
+                    case "Python": //Todo: python
+                        break;
+                    case "C++": //Todo: C++
+                        break;
+                }
+            } catch (Exception e) {
+                try { //Attempt to send failure notification
+                    sendInfo.write(JUDGING_ERROR);
+                    sendInfo.write(JUDGING_ABORT);
+                } catch (Exception ex) {
+                }
+                e.printStackTrace();
+            } finally { //Close streams
+                try {
+                    socket.close();
+                    fos.close();
+                    read.close();
+                    sendInfo.close();
+                    //Delete testing directory
+                    File dir = new File(dirName);
+                    for (File subfile : dir.listFiles()) {
+                        subfile.delete();
+                    }
+                    dir.delete();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
