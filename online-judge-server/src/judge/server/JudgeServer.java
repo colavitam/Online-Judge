@@ -199,9 +199,9 @@ public class JudgeServer implements Codes {
                 //Prepare to send data
                 sendInfo = socket.getOutputStream();
                 sendInfo.write(JUDGING_INIT);
-                
-                SimpleDateFormat sdf=new SimpleDateFormat("'on' MM/dd/yyyy 'at' hh:mm:ss a");
-                System.out.println("Problem \""+headerVals[3]+"\" received " + sdf.format(new Date()) +".");
+
+                SimpleDateFormat sdf = new SimpleDateFormat("'on' MM/dd/yyyy 'at' hh:mm:ss a");
+                System.out.println("Problem \"" + headerVals[3] + "\" received " + sdf.format(new Date()) + ".");
 
                 //Compile received program
                 String language = headerVals[4];
