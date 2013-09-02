@@ -456,7 +456,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
         }
         //File length check
         if (selected.length() > MAX_LENGTH) { //File too long
-            println("Fail: File size exceeds " + MAX_LENGTH + " bytes.");
+            println("Cannot submit! File size exceeds " + MAX_LENGTH + " bytes.");
             abortSubmission();
             return;
         }
@@ -465,7 +465,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
         String selFileName = selected.getPath();
         String[] divide = selFileName.split("\\.");
         if (divide.length == 1) {
-            println("Fail: File has no extension.");
+            println("Cannot submit! File has no extension.");
             abortSubmission();
             return;
         }
@@ -479,7 +479,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
             }
         }
         if (!matchFound) { //Invalid extension
-            println("Fail: Extension \"" + extension + "\" is invalid for language \"" + languageSelect.getSelectedItem() + "\".");
+            println("Cannot submit! Extension \"" + extension + "\" is invalid for language \"" + languageSelect.getSelectedItem() + "\". Please select the proper language.");
             abortSubmission();
             return;
         }
