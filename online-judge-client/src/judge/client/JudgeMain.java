@@ -232,7 +232,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
 
         jLabel5.setText("Language:");
 
-        languageSelect.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Java" }));
+        languageSelect.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Java", "Python", "C++" }));
 
         jButton2.setText("-");
 

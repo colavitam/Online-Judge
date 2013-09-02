@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import judge.client.Codes;
@@ -11,18 +12,19 @@ import judge.client.Codes;
 public class JudgeServer implements Codes {
 
     static String testDirectory = "C:/Judge/";
-    static String javaCompile = "\"C:/Program Files (x86)/Java/jdk1.7.0_02/bin/javac\"";
-    static String javaExec = "\"C:/Program Files (x86)/Java/jdk1.7.0_02/bin/java\"";
+    static String javaCompile = "javac";
+    static String javaExec = "java";
+    static String pythonExec = "python";
+    static String cppCompile = "g++";
     final static long USACO_TIME_LIMIT = 2000;
     final static long OTHER_TIME_LIMIT = 30000;
 
     public static void main(String[] args) {
-        if (args.length == 3) {
+        if (args.length == 1) {
             testDirectory = args[0];
-            javaCompile = args[1];
-            javaExec = args[2];
         } else if (args.length == 0) {
-            System.out.println("For custom parameters, specifiy testDirectory, javacPath, and javaPath in order.");
+            System.out.println("Please provide the test directory and ensure that java, javac, python, and g++ are installed.");
+            return;
         }
         ServerSocket servSocket;
         try {
@@ -205,76 +207,89 @@ public class JudgeServer implements Codes {
 
                 //Compile received program
                 String language = headerVals[4];
+                boolean compiling = false;
+                String[] compileCommand = null;
+                String[] execCommand = null;
                 switch (language) {
                     case "Java": //Received java program
-                        //Compile program
-                        ProcessBuilder builder = new ProcessBuilder(new String[]{javaCompile, dirName + name});
-                        Process comp = builder.start();
-                        int compileResult = comp.waitFor();
-                        if (compileResult != 0) { //Compile failed
-                            sendInfo.write(COMPILE_FAIL);
-                            sendInfo.write(JUDGING_ABORT);
-                            break;
-                        }
-                        sendInfo.write(COMPILE_PASS); //Compile succeeded
-                        boolean success = true;
-                        int tests = testCount(headerVals); //Check how many tests need to be run
-                        if (tests == 0) { //Record of problem was not found
-                            sendInfo.write(INVALID_PROBLEM);
-                            sendInfo.write(JUDGING_ABORT);
-                            break;
-                        }
-
-                        //Run each test case
-                        outerLoop:
-                        for (int i = 1; i <= tests; i++) {
-                            //Move test files into place
-                            prepare(headerVals, dirName, i);
-                            //Execute program
-                            builder = new ProcessBuilder(new String[]{javaExec, name.split("\\.")[0]});
-                            new File(dirName + "input.in").createNewFile();
-                            new File(dirName + "output.out").createNewFile();
-                            builder.redirectInput(new File(dirName + "input.in")); //Redirect standard input to test case input
-                            builder.redirectOutput(new File(dirName + "output.out")); //Redirect standard output to test case output
-                            builder.directory(new File(dirName)); //Execute from testing directory
-                            Process run = builder.start();
-                            //Monitor time limit
-                            long startTime = Calendar.getInstance().getTimeInMillis();
-                            while (true) {
-                                try {
-                                    run.exitValue(); //Throws if not completed
-                                } catch (Exception e) {
-                                    long timeDif = Calendar.getInstance().getTimeInMillis() - startTime;
-                                    if (!timeOkay(headerVals, timeDif)) { //Time limit exceeded
-                                        sendInfo.write(TEST_FAIL_TIMEOUT);
-                                        success = false;
-                                        run.destroy();
-                                        break outerLoop;
-                                    }
-                                    continue;
-                                }
-                                break;
-                            }
-                            //Program completed
-                            boolean correct = checkResult(headerVals, dirName, i); //Check test case
-                            if (correct) { //Test passed
-                                sendInfo.write(TEST_PASS);
-                            } else { //Test failed
-                                sendInfo.write(TEST_FAIL_WRONG);
-                                success = false;
-                                break;
-                            }
-                        }
-                        if (success) { //All tests passed
-                            sendInfo.write(TESTS_GOOD);
-                        } else { //Test failed
-                            sendInfo.write(TESTS_BAD);
-                        }
+                        compiling = true;
+                        compileCommand = new String[]{javaCompile, dirName + name};
+                        execCommand = new String[]{javaExec, name.split("\\.")[0]};
                         break;
                     case "Python": //Todo: python
+                        compiling = false;
+                        execCommand = new String[]{pythonExec, dirName + name};
                         break;
                     case "C++": //Todo: C++
+                        compiling = true;
+                        compileCommand = new String[]{cppCompile, dirName + name, "-o", dirName + "exec"};
+                        execCommand = new String[]{dirName + "exec"};
                         break;
+                }
+                //Compile program
+                if (compiling) {
+                    ProcessBuilder builder = new ProcessBuilder(compileCommand);
+                    Process comp = builder.start();
+                    int compileResult = comp.waitFor();
+                    if (compileResult != 0) { //Compile failed
+                        sendInfo.write(COMPILE_FAIL);
+                        sendInfo.write(JUDGING_ABORT);
+                        return;
+                    }
+                    sendInfo.write(COMPILE_PASS); //Compile succeeded
+                }
+                boolean success = true;
+                int tests = testCount(headerVals); //Check how many tests need to be run
+                if (tests == 0) { //Record of problem was not found
+                    sendInfo.write(INVALID_PROBLEM);
+                    sendInfo.write(JUDGING_ABORT);
+                    return;
+                }
+
+                //Run each test case
+                outerLoop:
+                for (int i = 1; i <= tests; i++) {
+                    //Move test files into place
+                    prepare(headerVals, dirName, i);
+                    //Execute program
+                    ProcessBuilder builder = new ProcessBuilder(execCommand);
+                    new File(dirName + "input.in").createNewFile();
+                    new File(dirName + "output.out").createNewFile();
+                    builder.redirectInput(new File(dirName + "input.in")); //Redirect standard input to test case input
+                    builder.redirectOutput(new File(dirName + "output.out")); //Redirect standard output to test case output
+                    builder.directory(new File(dirName)); //Execute from testing directory
+                    Process run = builder.start();
+                    //Monitor time limit
+                    long startTime = Calendar.getInstance().getTimeInMillis();
+                    while (true) {
+                        try {
+                            run.exitValue(); //Throws if not completed
+                        } catch (Exception e) {
+                            long timeDif = Calendar.getInstance().getTimeInMillis() - startTime;
+                            if (!timeOkay(headerVals, timeDif)) { //Time limit exceeded
+                                sendInfo.write(TEST_FAIL_TIMEOUT);
+                                success = false;
+                                run.destroy();
+                                break outerLoop;
+                            }
+                            continue;
+                        }
+                        break;
+                    }
+                    //Program completed
+                    boolean correct = checkResult(headerVals, dirName, i); //Check test case
+                    if (correct) { //Test passed
+                        sendInfo.write(TEST_PASS);
+                    } else { //Test failed
+                        sendInfo.write(TEST_FAIL_WRONG);
+                        success = false;
+                        break;
+                    }
+                }
+                if (success) { //All tests passed
+                    sendInfo.write(TESTS_GOOD);
+                } else { //Test failed
+                    sendInfo.write(TESTS_BAD);
                 }
             } catch (Exception e) {
                 try { //Attempt to send failure notification
