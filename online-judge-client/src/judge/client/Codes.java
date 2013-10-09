@@ -11,6 +11,7 @@ public interface Codes {
     public static int TESTS_GOOD = 8;
     public static int INVALID_PROBLEM = 9;
     public static int JUDGING_ERROR = 10;
+    public static int SCORE_RESULT = 11;
     public static int JUDGING_ABORT = 0;
     public final static String SERVERIPADDR = "74.104.179.243";
 }

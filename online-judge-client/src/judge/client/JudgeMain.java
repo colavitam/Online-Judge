@@ -17,6 +17,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
     String[][] contests;
     String[][][] problems;
     JButton[] tests;
+    String signedInAs;
 
     @Override
     public void init() {
@@ -53,6 +54,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
             tests[i].setText("-");
         }
         loadProblems();
+        signedInAs = "Guest";
     }
 
     private void loadProblems() { //Programming death penalty here
@@ -190,6 +192,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
         jButton15 = new javax.swing.JButton();
         jButton16 = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
+        signInButton = new javax.swing.JButton();
 
         jLabel1.setText("File to Upload:");
 
@@ -268,6 +271,13 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
 
         jLabel6.setText("Judge by Michael Colavita");
 
+        signInButton.setText("Sign In");
+        signInButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                signInButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -301,15 +311,17 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton13, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton14, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel6))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton14, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton16, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(submitButton)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(signInButton, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(submitButton))))
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -380,7 +392,9 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
                         .addComponent(jLabel5)
                         .addComponent(languageSelect, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel6))
-                    .addComponent(submitButton)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(submitButton)
+                        .addComponent(signInButton))))
         );
 
         layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jButton1, jButton10, jButton11, jButton12, jButton13, jButton14, jButton15, jButton16, jButton2, jButton3, jButton4, jButton5, jButton6, jButton7, jButton8, jButton9});
@@ -437,6 +451,20 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
         //Update problem list
         problemSelect.setModel(new DefaultComboBoxModel(problems[originSelect.getSelectedIndex()][contestSelect.getSelectedIndex()]));
     }//GEN-LAST:event_contestSelectItemStateChanged
+
+    private void signInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_signInButtonActionPerformed
+        try {
+            String name = JOptionPane.showInputDialog(null,"Enter your first and last name:","",JOptionPane.DEFAULT_OPTION);
+            if(name == null)
+                return;
+            signedInAs = name;
+            signInButton.setEnabled(false);
+            signInButton.setText(name);
+        }
+        catch(Exception e) {
+            
+        }
+    }//GEN-LAST:event_signInButtonActionPerformed
 
     private void submit() {
         //Reset test buttons
@@ -504,7 +532,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
             //Connection has been established
             println("Connection established.");
             //Send info header
-            String header = selected.getName() + "===SPLIT HEADER===" + originSelect.getSelectedItem() + "===SPLIT HEADER===" + contestSelect.getSelectedItem() + "===SPLIT HEADER===" + problemSelect.getSelectedItem() + "===SPLIT HEADER===" + languageSelect.getSelectedItem() + "===END HEADER===\n";
+            String header = selected.getName() + "===SPLIT HEADER===" + originSelect.getSelectedItem() + "===SPLIT HEADER===" + contestSelect.getSelectedItem() + "===SPLIT HEADER===" + problemSelect.getSelectedItem() + "===SPLIT HEADER===" + languageSelect.getSelectedItem() + "===SPLIT HEADER===" + signedInAs + "===END HEADER===\n";
             os.write(header.getBytes());
             //Send file
             int len;
@@ -563,6 +591,10 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
                     case JUDGING_ERROR:
                         println("The judge encountered an error.");
                         break;
+                    case SCORE_RESULT:
+                        int score = is.read();
+                        println("Final score: "+score);
+                        break;
                     case TESTS_BAD:
                         println("Tests failed!");
                         outputArea.setBackground(Color.PINK);
@@ -620,6 +652,7 @@ public class JudgeMain extends javax.swing.JApplet implements Codes {
     private javax.swing.JComboBox originSelect;
     private javax.swing.JTextArea outputArea;
     private javax.swing.JComboBox problemSelect;
+    private javax.swing.JButton signInButton;
     private javax.swing.JButton submitButton;
     // End of variables declaration//GEN-END:variables
 }

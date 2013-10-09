@@ -8,9 +8,12 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import judge.client.Codes;
+import judge.record.ProblemRecord;
+import judge.record.RecordManager;
 
 public class JudgeServer implements Codes {
 
+    static RecordManager manager;
     static String testDirectory = "C:/Judge/";
     static String javaCompile = "javac";
     static String javaExec = "java";
@@ -28,6 +31,7 @@ public class JudgeServer implements Codes {
         }
         ServerSocket servSocket;
         try {
+            manager = new RecordManager(testDirectory+"database");
             servSocket = new ServerSocket(13786);
         } catch (Exception e) {
             System.out.println("Failed to setup ServerSocket.");
@@ -202,8 +206,8 @@ public class JudgeServer implements Codes {
                 sendInfo = socket.getOutputStream();
                 sendInfo.write(JUDGING_INIT);
 
-                SimpleDateFormat sdf = new SimpleDateFormat("'on' MM/dd/yyyy 'at' hh:mm:ss a");
-                System.out.println("Problem \"" + headerVals[3] + "\" received " + sdf.format(new Date()) + ".");
+                SimpleDateFormat sdf = new SimpleDateFormat("' on' MM/dd/yyyy 'at' hh:mm:ss a");
+                System.out.println("Problem \"" + headerVals[3] + "\" received from " +headerVals[5] + sdf.format(new Date()) + ".");
 
                 //Compile received program
                 String language = headerVals[4];
@@ -245,7 +249,7 @@ public class JudgeServer implements Codes {
                     sendInfo.write(JUDGING_ABORT);
                     return;
                 }
-
+                int score = 0;
                 //Run each test case
                 outerLoop:
                 for (int i = 1; i <= tests; i++) {
@@ -270,7 +274,7 @@ public class JudgeServer implements Codes {
                                 sendInfo.write(TEST_FAIL_TIMEOUT);
                                 success = false;
                                 run.destroy();
-                                break outerLoop;
+                                continue outerLoop;
                             }
                             continue;
                         }
@@ -280,16 +284,23 @@ public class JudgeServer implements Codes {
                     boolean correct = checkResult(headerVals, dirName, i); //Check test case
                     if (correct) { //Test passed
                         sendInfo.write(TEST_PASS);
+                        score ++;
                     } else { //Test failed
                         sendInfo.write(TEST_FAIL_WRONG);
                         success = false;
-                        break;
                     }
                 }
+                sendInfo.write(SCORE_RESULT);
+                sendInfo.write(score);
                 if (success) { //All tests passed
                     sendInfo.write(TESTS_GOOD);
                 } else { //Test failed
                     sendInfo.write(TESTS_BAD);
+                }
+                // Save score
+                if(!headerVals[5].contentEquals("Guest")) {
+                    manager.addScore(headerVals[5], new ProblemRecord(headerVals[1], headerVals[2], headerVals[3]), score);
+                    manager.saveDatabase(testDirectory+"database");
                 }
             } catch (Exception e) {
                 try { //Attempt to send failure notification
