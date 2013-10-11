@@ -21,7 +21,7 @@ public class JudgeServer implements Codes {
     static String cppCompile = "g++";
     final static long USACO_TIME_LIMIT = 2000;
     final static long OTHER_TIME_LIMIT = 30000;
-
+    
     public static void main(String[] args) {
         if (args.length == 1) {
             testDirectory = args[0];
@@ -47,10 +47,12 @@ public class JudgeServer implements Codes {
             }
         }
     }
-
+    
     public static boolean timeOkay(String[] headers, long timeInMillis) {
         switch (headers[1]) {
             case "USACO":
+                return timeInMillis <= USACO_TIME_LIMIT;
+            case "Qualifier":
                 return timeInMillis <= USACO_TIME_LIMIT;
             case "WPI":
                 return timeInMillis <= OTHER_TIME_LIMIT;
@@ -59,7 +61,7 @@ public class JudgeServer implements Codes {
             case "PClassic":
                 return timeInMillis <= OTHER_TIME_LIMIT;
         }
-        return true;
+        return false;
     }
 
     public static int testCount(String[] headers) throws IOException {
@@ -137,8 +139,8 @@ public class JudgeServer implements Codes {
                 if (!result.exists()) {
                     return false;
                 }
-                String st = readAll(result).replaceAll("\r", "");
-                String expected = expectedResult(headers, dirName, testNumber).replaceAll("\r", "");
+                String st = readAll(result).replaceAll("\r", "").trim();
+                String expected = expectedResult(headers, dirName, testNumber).replaceAll("\r", "").trim();
                 if (st.contentEquals(expected)) {
                     return true;
                 }
@@ -148,8 +150,8 @@ public class JudgeServer implements Codes {
                 if (!result2.exists()) {
                     return false;
                 }
-                String st2 = readAll(result2).replaceAll("\r", "");
-                String expected2 = expectedResult(headers, dirName, testNumber).replaceAll("\r", "");
+                String st2 = readAll(result2).replaceAll("\r", "").trim();
+                String expected2 = expectedResult(headers, dirName, testNumber).replaceAll("\r", "").trim();
                 if (st2.contentEquals(expected2)) {
                     return true;
                 }
@@ -297,6 +299,7 @@ public class JudgeServer implements Codes {
                 } else { //Test failed
                     sendInfo.write(TESTS_BAD);
                 }
+                System.out.println(headerVals[5]+" scored "+score+" on problem \""+headerVals[3]+"\".");
                 // Save score
                 if(!headerVals[5].contentEquals("Guest")) {
                     manager.addScore(headerVals[5], new ProblemRecord(headerVals[1], headerVals[2], headerVals[3]), score);
